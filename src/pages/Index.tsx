@@ -103,7 +103,7 @@ const Index = () => {
             </div>
             <div>
               <h1 className="text-lg font-display font-bold text-foreground tracking-tight">
-                Talon Scanner
+                Talon și CI Scanner
               </h1>
               <p className="text-xs text-muted-foreground">
                 Cititor documente românești
