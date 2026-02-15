@@ -33,6 +33,11 @@ Given an image of a Romanian ID card (front or back), extract ALL of the followi
   "MRZ": "Machine Readable Zone (if visible)"
 }
 
+IMPORTANT RULES:
+1. The DATA_NASTERII (date of birth) MUST be extracted from the MRZ line, NOT from the visible text on the card. In the MRZ, the birth date is encoded as YYMMDD starting at position 29 (after the document number and check digit). For example, if the MRZ contains "530510", the birth date is "10.05.1953". Format the date as DD.MM.YYYY.
+2. To determine the century: if YY > 50, the year is 19YY; if YY <= 50, the year is 20YY.
+3. Always read and include the full MRZ string in the MRZ field.
+
 Return ONLY the JSON with the actual VALUES extracted from the document image. No markdown, no explanation, just the JSON object.`;
 
 serve(async (req) => {
