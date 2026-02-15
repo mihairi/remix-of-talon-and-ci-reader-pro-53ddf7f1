@@ -3,15 +3,19 @@ import { supabase } from "@/integrations/supabase/client";
 import ImageUpload from "@/components/ImageUpload";
 import DocumentResults from "@/components/DocumentResults";
 import { mapApiResponse, type ParsedDocument } from "@/lib/documentParser";
-import { ScanLine, RotateCcw } from "lucide-react";
+import { mapIdCardResponse, type ParsedIdCard } from "@/lib/idCardParser";
+import { ScanLine, RotateCcw, Car, CreditCard } from "lucide-react";
 import { toast } from "sonner";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+type DocType = "talon" | "id-card";
+type ResultData = { type: DocType; fields: { code: string; label: string; value: string }[] };
 
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
       const result = reader.result as string;
-      // Remove data URL prefix
       const base64 = result.split(",")[1];
       resolve(base64);
     };
@@ -21,8 +25,9 @@ function fileToBase64(file: File): Promise<string> {
 }
 
 const Index = () => {
+  const [docType, setDocType] = useState<DocType>("talon");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [result, setResult] = useState<ParsedDocument | null>(null);
+  const [result, setResult] = useState<ResultData | null>(null);
 
   const processImage = useCallback(async (file: File) => {
     setIsProcessing(true);
@@ -30,8 +35,9 @@ const Index = () => {
 
     try {
       const imageBase64 = await fileToBase64(file);
+      const functionName = docType === "talon" ? "ocr-document" : "ocr-id-card";
 
-      const { data, error } = await supabase.functions.invoke("ocr-document", {
+      const { data, error } = await supabase.functions.invoke(functionName, {
         body: { imageBase64, mimeType: file.type },
       });
 
@@ -42,8 +48,13 @@ const Index = () => {
         return;
       }
 
-      const parsed = mapApiResponse(data.fields || {});
-      setResult(parsed);
+      if (docType === "talon") {
+        const parsed = mapApiResponse(data.fields || {});
+        setResult({ type: "talon", fields: parsed.fields });
+      } else {
+        const parsed = mapIdCardResponse(data.fields || {});
+        setResult({ type: "id-card", fields: parsed.fields });
+      }
       toast.success("Document procesat cu succes!");
     } catch (err) {
       console.error("OCR Error:", err);
@@ -51,11 +62,36 @@ const Index = () => {
     } finally {
       setIsProcessing(false);
     }
-  }, []);
+  }, [docType]);
 
   const handleReset = () => {
     setResult(null);
   };
+
+  const docConfig = {
+    talon: {
+      title: "Scanează talonul auto",
+      description: "Încarcă o fotografie cu certificatul de înmatriculare și extrage automat toate datele din document folosind inteligență artificială.",
+      uploadLabel: "Încarcă fotografia talonului",
+      features: [
+        { title: "AI Vision", desc: "Recunoaștere avansată cu AI" },
+        { title: "24 Câmpuri", desc: "Toate rubricile A–X extrase" },
+        { title: "Copiere rapidă", desc: "Un click pentru a copia datele" },
+      ],
+    },
+    "id-card": {
+      title: "Scanează cartea de identitate",
+      description: "Încarcă o fotografie cu cartea de identitate (format vechi sau nou) și extrage automat toate datele personale folosind inteligență artificială.",
+      uploadLabel: "Încarcă fotografia cărții de identitate",
+      features: [
+        { title: "AI Vision", desc: "Recunoaștere avansată cu AI" },
+        { title: "20 Câmpuri", desc: "Toate datele personale extrase" },
+        { title: "Format vechi & nou", desc: "Suport pentru ambele formate" },
+      ],
+    },
+  };
+
+  const config = docConfig[docType];
 
   return (
     <div className="min-h-screen bg-background">
@@ -70,7 +106,7 @@ const Index = () => {
                 Talon Scanner
               </h1>
               <p className="text-xs text-muted-foreground">
-                Cititor certificat de înmatriculare
+                Cititor documente românești
               </p>
             </div>
           </div>
@@ -89,13 +125,25 @@ const Index = () => {
       <main className="container max-w-6xl mx-auto px-4 py-8">
         {!result ? (
           <div className="max-w-2xl mx-auto space-y-6">
+            <Tabs value={docType} onValueChange={(v) => setDocType(v as DocType)} className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="talon" className="flex items-center gap-2">
+                  <Car className="w-4 h-4" />
+                  Talon auto
+                </TabsTrigger>
+                <TabsTrigger value="id-card" className="flex items-center gap-2">
+                  <CreditCard className="w-4 h-4" />
+                  Carte de identitate
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+
             <div className="text-center space-y-3 mb-8">
               <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-                Scanează talonul auto
+                {config.title}
               </h2>
               <p className="text-muted-foreground max-w-md mx-auto">
-                Încarcă o fotografie cu certificatul de înmatriculare și extrage
-                automat toate datele din document folosind inteligență artificială.
+                {config.description}
               </p>
             </div>
 
@@ -109,11 +157,7 @@ const Index = () => {
             )}
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-8">
-              {[
-                { title: "AI Vision", desc: "Recunoaștere avansată cu AI" },
-                { title: "24 Câmpuri", desc: "Toate rubricile A–X extrase" },
-                { title: "Copiere rapidă", desc: "Un click pentru a copia datele" },
-              ].map((item) => (
+              {config.features.map((item) => (
                 <div
                   key={item.title}
                   className="p-4 rounded-xl bg-card border border-border text-center"
