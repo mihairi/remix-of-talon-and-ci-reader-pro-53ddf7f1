@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.ocr-api]
 verify_jwt = false
+
+[functions.ocr-id-card]
+verify_jwt = false
+
+[functions.ocr-id-card-api]
+verify_jwt = false
