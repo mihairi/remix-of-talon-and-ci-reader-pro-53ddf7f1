@@ -1,12 +1,41 @@
 import type { DocumentField } from "@/lib/documentParser";
-import { CheckCircle, AlertCircle, Copy, Check } from "lucide-react";
-import { useState } from "react";
+import { CheckCircle, AlertCircle, Copy, Check, ShieldCheck, ShieldX } from "lucide-react";
+import { useState, useMemo } from "react";
+import { validateCnp, type CnpValidationResult } from "@/lib/cnpValidator";
 
 interface DocumentResultsProps {
   fields: DocumentField[];
 }
 
-const FieldCard = ({ field }: { field: DocumentField }) => {
+const CnpBadge = ({ result }: { result: CnpValidationResult }) => {
+  if (result.valid) {
+    return (
+      <div className="mt-2 space-y-1">
+        <div className="flex items-center gap-1.5 text-xs text-success">
+          <ShieldCheck className="w-3.5 h-3.5" />
+          <span className="font-semibold">CNP valid</span>
+        </div>
+        {result.details && (
+          <div className="text-xs text-muted-foreground space-x-2">
+            <span>{result.details.sex}</span>
+            <span>·</span>
+            <span>{result.details.birthDate}</span>
+            <span>·</span>
+            <span>{result.details.county}</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+  return (
+    <div className="mt-2 flex items-center gap-1.5 text-xs text-destructive">
+      <ShieldX className="w-3.5 h-3.5" />
+      <span className="font-semibold">{result.error}</span>
+    </div>
+  );
+};
+
+const FieldCard = ({ field, cnpValidation }: { field: DocumentField; cnpValidation?: CnpValidationResult }) => {
   const [copied, setCopied] = useState(false);
   const hasValue = field.value.length > 0;
 
@@ -41,6 +70,7 @@ const FieldCard = ({ field }: { field: DocumentField }) => {
           <p className="text-sm font-medium text-foreground break-all font-display">
             {hasValue ? field.value : "—"}
           </p>
+          {cnpValidation && hasValue && <CnpBadge result={cnpValidation} />}
         </div>
         {hasValue && (
           <button
@@ -63,6 +93,14 @@ const FieldCard = ({ field }: { field: DocumentField }) => {
 const DocumentResults = ({ fields }: DocumentResultsProps) => {
   const filledCount = fields.filter((f) => f.value.length > 0).length;
 
+  const cnpValidation = useMemo(() => {
+    const cnpField = fields.find((f) => f.code === "CNP");
+    if (cnpField && cnpField.value) {
+      return validateCnp(cnpField.value);
+    }
+    return undefined;
+  }, [fields]);
+
   return (
     <div className="w-full">
       <div className="flex items-center justify-between mb-6">
@@ -78,7 +116,11 @@ const DocumentResults = ({ fields }: DocumentResultsProps) => {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {fields.map((field) => (
-          <FieldCard key={field.code} field={field} />
+          <FieldCard
+            key={field.code}
+            field={field}
+            cnpValidation={field.code === "CNP" ? cnpValidation : undefined}
+          />
         ))}
       </div>
     </div>
