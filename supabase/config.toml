@@ -1,0 +1,4 @@
+project_id = "uxacspvphuajudjstjdi"
+
+[functions.ocr-document]
+verify_jwt = false
