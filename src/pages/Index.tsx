@@ -147,7 +147,7 @@ const Index = () => {
               </p>
             </div>
 
-            <ImageUpload onImageSelect={processImage} isProcessing={isProcessing} />
+            <ImageUpload onImageSelect={processImage} isProcessing={isProcessing} uploadLabel={config.uploadLabel} />
 
             {isProcessing && (
               <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground">

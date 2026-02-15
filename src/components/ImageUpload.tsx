@@ -4,9 +4,10 @@ import { Upload, FileImage } from "lucide-react";
 interface ImageUploadProps {
   onImageSelect: (file: File) => void;
   isProcessing: boolean;
+  uploadLabel?: string;
 }
 
-const ImageUpload = ({ onImageSelect, isProcessing }: ImageUploadProps) => {
+const ImageUpload = ({ onImageSelect, isProcessing, uploadLabel = "Încarcă fotografia talonului" }: ImageUploadProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
 
@@ -89,7 +90,7 @@ const ImageUpload = ({ onImageSelect, isProcessing }: ImageUploadProps) => {
             </div>
             <div className="text-center">
               <p className="text-foreground font-medium text-lg">
-                Încarcă fotografia talonului
+                {uploadLabel}
               </p>
               <p className="text-muted-foreground text-sm mt-1">
                 Trage imaginea aici sau apasă pentru a selecta
