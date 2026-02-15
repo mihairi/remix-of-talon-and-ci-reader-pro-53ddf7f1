@@ -71,7 +71,7 @@ const Index = () => {
   const docConfig = {
     talon: {
       title: "Scanează talonul auto",
-      description: "Încarcă o fotografie cu certificatul de înmatriculare și extrage automat toate datele din document folosind inteligență artificială.",
+      description: "Încarcă o fotografie cu certificatul de înmatriculare și extrage automat toate datele din document.",
       uploadLabel: "Încarcă fotografia talonului",
       features: [
         { title: "AI Vision", desc: "Recunoaștere avansată cu AI" },
@@ -81,7 +81,7 @@ const Index = () => {
     },
     "id-card": {
       title: "Scanează cartea de identitate",
-      description: "Încarcă o fotografie cu cartea de identitate (format vechi sau nou) și extrage automat toate datele personale folosind inteligență artificială.",
+      description: "Încarcă o fotografie cu cartea de identitate (format vechi sau nou) și extrage automat toate datele personale.",
       uploadLabel: "Încarcă fotografia cărții de identitate",
       features: [
         { title: "AI Vision", desc: "Recunoaștere avansată cu AI" },
