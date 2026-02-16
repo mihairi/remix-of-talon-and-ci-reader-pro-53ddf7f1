@@ -74,7 +74,7 @@ const Index = () => {
       description: "Încarcă o fotografie cu certificatul de înmatriculare și extrage automat toate datele din document.",
       uploadLabel: "Încarcă fotografia talonului",
       features: [
-        { title: "AI Vision", desc: "Recunoaștere avansată cu AI" },
+        { title: "99%", desc: "Acuratețe recunoaștere" },
         { title: "24 Câmpuri", desc: "Toate rubricile A–X extrase" },
         { title: "Copiere rapidă", desc: "Un click pentru a copia datele" },
       ],
@@ -84,7 +84,7 @@ const Index = () => {
       description: "Încarcă o fotografie cu cartea de identitate (format vechi sau nou) și extrage automat toate datele personale.",
       uploadLabel: "Încarcă fotografia cărții de identitate",
       features: [
-        { title: "AI Vision", desc: "Recunoaștere avansată cu AI" },
+        { title: "99%", desc: "Acuratețe recunoaștere" },
         { title: "20 Câmpuri", desc: "Toate datele personale extrase" },
         { title: "Format vechi & nou", desc: "Suport pentru ambele formate" },
       ],
