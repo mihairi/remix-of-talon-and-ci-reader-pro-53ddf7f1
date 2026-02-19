@@ -8,7 +8,9 @@ const corsHeaders = {
 
 const SYSTEM_PROMPT = `You are an expert OCR system specialized in reading Romanian vehicle registration certificates (certificat de înmatriculare / talon auto).
 
-Given an image of a Romanian car registration document, extract ALL of the following fields. Return ONLY a valid JSON object with these exact keys. If a field is not visible or readable, use an empty string "".
+IMPORTANT: First, verify that the image contains a Romanian vehicle registration certificate (talon auto / certificat de înmatriculare). If the image does NOT contain this type of document (e.g. it's an ID card, passport, invoice, photo, or any other document), return ONLY this exact JSON: {"error": "WRONG_DOCUMENT_TYPE"}. Do not extract any fields if the document is not a vehicle registration certificate.
+
+If the image IS a Romanian vehicle registration certificate, extract ALL of the following fields. Return ONLY a valid JSON object with these exact keys. If a field is not visible or readable, use an empty string "".
 
 {
   "A": "Numărul de înmatriculare",
@@ -121,6 +123,13 @@ serve(async (req) => {
     } catch {
       console.error("Failed to parse AI response:", content);
       parsed = {};
+    }
+
+    if (parsed?.error === "WRONG_DOCUMENT_TYPE") {
+      return new Response(
+        JSON.stringify({ error: "Documentul din fotografie nu este un Talon auto. Te rugăm să încarci o fotografie cu certificatul de înmatriculare." }),
+        { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     return new Response(JSON.stringify({ fields: parsed, rawResponse: content }), {

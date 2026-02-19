@@ -8,7 +8,9 @@ const corsHeaders = {
 
 const SYSTEM_PROMPT = `You are an expert OCR system specialized in reading Romanian identity cards (carte de identitate / buletin de identitate) in both old and new formats.
 
-Given an image of a Romanian ID card (front or back), extract ALL of the following fields. Return ONLY a valid JSON object with these exact keys. If a field is not visible or readable, use an empty string "".
+IMPORTANT: First, verify that the image contains a Romanian identity card (carte de identitate / CI / buletin). If the image does NOT contain this type of document (e.g. it's a vehicle registration certificate, passport, invoice, photo, or any other document), return ONLY this exact JSON: {"error": "WRONG_DOCUMENT_TYPE"}. Do not extract any fields if the document is not a Romanian identity card.
+
+If the image IS a Romanian identity card, extract ALL of the following fields. Return ONLY a valid JSON object with these exact keys. If a field is not visible or readable, use an empty string "".
 
 {
   "SERIA_NR": "Seria și numărul cărții de identitate",
@@ -145,6 +147,13 @@ serve(async (req) => {
       fields = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
     } catch {
       console.error("Failed to parse AI response:", content);
+    }
+
+    if ((fields as Record<string, string>)?.error === "WRONG_DOCUMENT_TYPE") {
+      return new Response(
+        JSON.stringify({ error: "Documentul din fotografie nu este o Carte de identitate. Te rugăm să încarci o fotografie cu cartea de identitate." }),
+        { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     return new Response(JSON.stringify({ success: true, fields }), {
