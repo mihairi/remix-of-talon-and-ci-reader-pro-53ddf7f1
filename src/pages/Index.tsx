@@ -64,9 +64,14 @@ const Index = () => {
         setResult({ type: "id-card", fields: parsed.fields });
       }
       toast.success("Document procesat cu succes!");
-    } catch (err) {
+    } catch (err: any) {
       console.error("OCR Error:", err);
-      toast.error("Eroare la procesarea imaginii. Încearcă din nou.");
+      // FunctionsHttpError throws with context = parsed JSON body (e.g. wrong doc type 422)
+      const errorMessage =
+        err?.context?.error ||
+        err?.message ||
+        "Eroare la procesarea imaginii. Încearcă din nou.";
+      toast.error(errorMessage);
     } finally {
       setIsProcessing(false);
     }
