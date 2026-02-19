@@ -42,25 +42,13 @@ const Index = () => {
       });
 
       if (error) {
-        // Extract user-friendly error from FunctionsHttpError response body (e.g. 422 wrong doc type)
-        try {
-          const ctx = error.context;
-          if (ctx) {
-            let body: { error?: string } | null = null;
-            if (typeof ctx.json === "function") {
-              body = await ctx.json();
-            } else if (typeof ctx.text === "function") {
-              body = JSON.parse(await ctx.text());
-            } else if (typeof ctx === "object" && ctx.error) {
-              body = ctx;
-            }
-            if (body?.error) {
-              toast.error(body.error);
-              return;
-            }
-          }
-        } catch {}
-        throw error;
+        // In supabase-js v2, FunctionsHttpError.context is the already-parsed JSON body
+        const errorMessage =
+          error.context?.error ||
+          error.message ||
+          "Eroare la procesarea imaginii. Încearcă din nou.";
+        toast.error(errorMessage);
+        return;
       }
 
       if (data?.error) {
