@@ -43,15 +43,23 @@ const Index = () => {
 
       if (error) {
         // Extract user-friendly error from FunctionsHttpError response body (e.g. 422 wrong doc type)
-        if (error.context) {
-          try {
-            const body = await error.context.json();
+        try {
+          const ctx = error.context;
+          if (ctx) {
+            let body: { error?: string } | null = null;
+            if (typeof ctx.json === "function") {
+              body = await ctx.json();
+            } else if (typeof ctx.text === "function") {
+              body = JSON.parse(await ctx.text());
+            } else if (typeof ctx === "object" && ctx.error) {
+              body = ctx;
+            }
             if (body?.error) {
               toast.error(body.error);
               return;
             }
-          } catch {}
-        }
+          }
+        } catch {}
         throw error;
       }
 
