@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { Upload, FileImage } from "lucide-react";
 
 interface ImageUploadProps {
-  onImageSelect: (file: File) => void;
+  onImageSelect: (file: File) => void | Promise<void>;
   isProcessing: boolean;
   uploadLabel?: string;
 }
@@ -12,11 +12,15 @@ const ImageUpload = ({ onImageSelect, isProcessing, uploadLabel = "Încarcă fot
   const [preview, setPreview] = useState<string | null>(null);
 
   const handleFile = useCallback(
-    (file: File) => {
+    async (file: File) => {
       if (!file.type.startsWith("image/")) return;
       const url = URL.createObjectURL(file);
       setPreview(url);
-      onImageSelect(file);
+      try {
+        await onImageSelect(file);
+      } catch {
+        // errors are handled inside onImageSelect; swallow here to prevent unhandled rejections
+      }
     },
     [onImageSelect]
   );
