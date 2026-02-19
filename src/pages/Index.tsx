@@ -41,7 +41,19 @@ const Index = () => {
         body: { imageBase64, mimeType: file.type },
       });
 
-      if (error) throw error;
+      if (error) {
+        // Extract user-friendly error from FunctionsHttpError response body (e.g. 422 wrong doc type)
+        if (error.context) {
+          try {
+            const body = await error.context.json();
+            if (body?.error) {
+              toast.error(body.error);
+              return;
+            }
+          } catch {}
+        }
+        throw error;
+      }
 
       if (data?.error) {
         toast.error(data.error);
