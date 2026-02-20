@@ -1,9 +1,11 @@
 import { useState, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import ImageUpload from "@/components/ImageUpload";
 import DocumentResults from "@/components/DocumentResults";
+import OllamaSettingsDialog from "@/components/OllamaSettingsDialog";
 import { mapApiResponse, type ParsedDocument } from "@/lib/documentParser";
 import { mapIdCardResponse, type ParsedIdCard } from "@/lib/idCardParser";
+import { runOllamaOcr } from "@/lib/ollamaOcr";
+import { loadSettings, type OllamaSettings } from "@/lib/ollamaSettings";
 import { ScanLine, RotateCcw, Car, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,71 +13,34 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 type DocType = "talon" | "id-card";
 type ResultData = { type: DocType; fields: { code: string; label: string; value: string }[] };
 
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      const base64 = result.split(",")[1];
-      resolve(base64);
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
 const Index = () => {
   const [docType, setDocType] = useState<DocType>("talon");
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState<ResultData | null>(null);
+  const [ollamaSettings, setOllamaSettings] = useState<OllamaSettings>(loadSettings);
 
   const processImage = useCallback(async (file: File) => {
     setIsProcessing(true);
     setResult(null);
 
     try {
-      const imageBase64 = await fileToBase64(file);
-      const functionName = docType === "talon" ? "ocr-document" : "ocr-id-card";
-
-      const { data, error } = await supabase.functions.invoke(functionName, {
-        body: { imageBase64, mimeType: file.type },
-      });
-
-      if (error) {
-        // In supabase-js v2, FunctionsHttpError.context is the already-parsed JSON body
-        const errorMessage =
-          error.context?.error ||
-          error.message ||
-          "Eroare la procesarea imaginii. Încearcă din nou.";
-        toast.error(errorMessage);
-        return;
-      }
-
-      if (data?.error) {
-        toast.error(data.error);
-        return;
-      }
+      const fields = await runOllamaOcr(file, docType, ollamaSettings);
 
       if (docType === "talon") {
-        const parsed = mapApiResponse(data.fields || {});
+        const parsed = mapApiResponse(fields);
         setResult({ type: "talon", fields: parsed.fields });
       } else {
-        const parsed = mapIdCardResponse(data.fields || {});
+        const parsed = mapIdCardResponse(fields);
         setResult({ type: "id-card", fields: parsed.fields });
       }
       toast.success("Document procesat cu succes!");
     } catch (err: any) {
       console.error("OCR Error:", err);
-      // FunctionsHttpError throws with context = parsed JSON body (e.g. wrong doc type 422)
-      const errorMessage =
-        err?.context?.error ||
-        err?.message ||
-        "Eroare la procesarea imaginii. Încearcă din nou.";
-      toast.error(errorMessage);
+      toast.error(err?.message || "Eroare la procesarea imaginii. Încearcă din nou.");
     } finally {
       setIsProcessing(false);
     }
-  }, [docType]);
+  }, [docType, ollamaSettings]);
 
   const handleReset = () => {
     setResult(null);
@@ -87,7 +52,7 @@ const Index = () => {
       description: "Încarcă o fotografie cu certificatul de înmatriculare și extrage automat toate datele din document.",
       uploadLabel: "Încarcă fotografia talonului",
       features: [
-        { title: "99%", desc: "Acuratețe recunoaștere" },
+        { title: "On-premise", desc: "Procesare locală cu Ollama" },
         { title: "24 Câmpuri", desc: "Toate rubricile A–X extrase" },
         { title: "Copiere rapidă", desc: "Un click pentru a copia datele" },
       ],
@@ -97,7 +62,7 @@ const Index = () => {
       description: "Încarcă o fotografie cu cartea de identitate (format vechi sau nou) și extrage automat toate datele personale.",
       uploadLabel: "Încarcă fotografia cărții de identitate",
       features: [
-        { title: "99%", desc: "Acuratețe recunoaștere" },
+        { title: "On-premise", desc: "Procesare locală cu Ollama" },
         { title: "20 Câmpuri", desc: "Toate datele personale extrase" },
         { title: "Format vechi & nou", desc: "Suport pentru ambele formate" },
       ],
@@ -119,19 +84,22 @@ const Index = () => {
                 Talon și CI Scanner
               </h1>
               <p className="text-xs text-muted-foreground">
-                Cititor documente românești
+                Cititor documente românești · Ollama local ({ollamaSettings.model})
               </p>
             </div>
           </div>
-          {result && (
-            <button
-              onClick={handleReset}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors text-sm font-medium"
-            >
-              <RotateCcw className="w-4 h-4" />
-              Scanare nouă
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            <OllamaSettingsDialog settings={ollamaSettings} onSave={setOllamaSettings} />
+            {result && (
+              <button
+                onClick={handleReset}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors text-sm font-medium"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Scanare nouă
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -165,7 +133,7 @@ const Index = () => {
             {isProcessing && (
               <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground">
                 <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                <span>Se analizează documentul cu AI...</span>
+                <span>Se analizează documentul cu Ollama ({ollamaSettings.model})...</span>
               </div>
             )}
 
