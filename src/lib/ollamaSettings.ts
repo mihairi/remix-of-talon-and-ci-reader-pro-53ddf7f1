@@ -7,7 +7,7 @@ export interface OllamaSettings {
 
 export const DEFAULT_SETTINGS: OllamaSettings = {
   baseUrl: "http://localhost:11434",
-  model: "qwen2-vl",
+  model: "glm-ocr",
 };
 
 export function loadSettings(): OllamaSettings {
