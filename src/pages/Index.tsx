@@ -84,7 +84,7 @@ const Index = () => {
                 Talon și CI Scanner
               </h1>
               <p className="text-xs text-muted-foreground">
-                Cititor documente românești · Ollama local ({ollamaSettings.model})
+                Cititor documente românești · {ollamaSettings.apiFormat === "ollama" ? "Ollama" : "OpenAI-compatible"} ({ollamaSettings.model})
               </p>
             </div>
           </div>
@@ -133,7 +133,7 @@ const Index = () => {
             {isProcessing && (
               <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground">
                 <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                <span>Se analizează documentul cu Ollama ({ollamaSettings.model})...</span>
+                <span>Se analizează documentul cu {ollamaSettings.apiFormat === "ollama" ? "Ollama" : "serverul local"} ({ollamaSettings.model})...</span>
               </div>
             )}
 

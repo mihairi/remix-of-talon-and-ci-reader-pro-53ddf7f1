@@ -94,29 +94,45 @@ export async function runOllamaOcr(
       ? "Extract all fields from this Romanian vehicle registration certificate image."
       : "Extract all fields from this Romanian identity card (carte de identitate) image.";
 
-  const url = `${settings.baseUrl.replace(/\/$/, "")}/api/chat`;
+  const base = settings.baseUrl.replace(/\/$/, "");
+  const isOpenAI = settings.apiFormat === "openai-compatible";
+  const url = isOpenAI ? `${base}/v1/chat/completions` : `${base}/api/chat`;
 
-  let response: Response;
-  try {
-    response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+  const body = isOpenAI
+    ? {
         model: settings.model,
         stream: false,
         messages: [
           { role: "system", content: systemPrompt },
           {
             role: "user",
-            content: userText,
-            images: [imageBase64],
+            content: [
+              { type: "text", text: userText },
+              { type: "image_url", image_url: { url: `data:image/jpeg;base64,${imageBase64}` } },
+            ],
           },
         ],
-      }),
+      }
+    : {
+        model: settings.model,
+        stream: false,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userText, images: [imageBase64] },
+        ],
+      };
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
     });
   } catch (err: any) {
+    const serverName = isOpenAI ? "serverul local" : "Ollama";
     throw new Error(
-      `Nu s-a putut conecta la Ollama (${settings.baseUrl}). Asigurați-vă că Ollama rulează local și că CORS este activat (OLLAMA_ORIGINS=*).`
+      `Nu s-a putut conecta la ${serverName} (${settings.baseUrl}). Asigurați-vă că serverul rulează local și că CORS este activat.`
     );
   }
 
@@ -126,7 +142,9 @@ export async function runOllamaOcr(
   }
 
   const result = await response.json();
-  const content: string = result?.message?.content || "";
+  const content: string = isOpenAI
+    ? result?.choices?.[0]?.message?.content || ""
+    : result?.message?.content || "";
 
   let parsed: Record<string, string> = {};
   try {
