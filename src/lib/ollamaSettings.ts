@@ -1,13 +1,17 @@
 const STORAGE_KEY = "ollama_settings";
 
+export type ApiFormat = "ollama" | "openai-compatible";
+
 export interface OllamaSettings {
   baseUrl: string;
   model: string;
+  apiFormat: ApiFormat;
 }
 
 export const DEFAULT_SETTINGS: OllamaSettings = {
   baseUrl: "http://localhost:11434",
   model: "glm-ocr",
+  apiFormat: "ollama",
 };
 
 export function loadSettings(): OllamaSettings {
