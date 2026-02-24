@@ -1,3 +1,5 @@
+import { validateCnp } from "@/lib/cnpValidator";
+
 export interface IdCardField {
   code: string;
   label: string;
@@ -32,10 +34,20 @@ const ID_FIELD_MAP: Record<string, { code: string; label: string }> = {
 };
 
 export function mapIdCardResponse(apiFields: Record<string, string>): ParsedIdCard {
+  // Derive birth date from CNP validation instead of AI response
+  let cnpBirthDate = "";
+  const cnpValue = apiFields["CNP"]?.trim();
+  if (cnpValue) {
+    const result = validateCnp(cnpValue);
+    if (result.valid && result.details?.birthDate) {
+      cnpBirthDate = result.details.birthDate;
+    }
+  }
+
   const fields: IdCardField[] = Object.entries(ID_FIELD_MAP).map(([key, meta]) => ({
     code: meta.code,
     label: meta.label,
-    value: apiFields[key]?.trim() || "",
+    value: key === "DATA_NASTERII" ? cnpBirthDate : (apiFields[key]?.trim() || ""),
   }));
 
   return { fields };
