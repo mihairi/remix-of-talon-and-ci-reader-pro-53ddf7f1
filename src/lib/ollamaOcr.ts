@@ -130,15 +130,13 @@ export async function runOllamaOcr(
       body: JSON.stringify(body),
     });
   } catch (err: any) {
-    const serverName = isOpenAI ? "serverul local" : "Ollama";
     throw new Error(
-      `Nu s-a putut conecta la ${serverName} (${settings.baseUrl}). Asigurați-vă că serverul rulează local și că CORS este activat.`
+      "Nu s-a putut conecta la serverul local. Asigurați-vă că serverul rulează și că CORS este activat."
     );
   }
 
   if (!response.ok) {
-    const text = await response.text().catch(() => "");
-    throw new Error(`Ollama a returnat eroarea ${response.status}: ${text}`);
+    throw new Error("Serverul local a returnat o eroare. Verificați configurația și încercați din nou.");
   }
 
   const result = await response.json();

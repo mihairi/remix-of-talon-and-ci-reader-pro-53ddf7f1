@@ -6,6 +6,10 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_BASE64_LENGTH = Math.ceil(MAX_FILE_SIZE * 4 / 3);
+const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
 const SYSTEM_PROMPT = `You are an expert OCR system specialized in reading Romanian identity cards (carte de identitate / buletin de identitate) in both old and new formats.
 
 IMPORTANT: First, verify that the image contains a Romanian identity card (carte de identitate / CI / buletin). If the image does NOT contain this type of document (e.g. it's a vehicle registration certificate, passport, invoice, photo, or any other document), return ONLY this exact JSON: {"error": "WRONG_DOCUMENT_TYPE"}. Do not extract any fields if the document is not a Romanian identity card.
@@ -62,7 +66,15 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      mimeType = file.type || "image/jpeg";
+
+      if (file.size > MAX_FILE_SIZE) {
+        return new Response(JSON.stringify({ error: "File too large. Maximum 10MB." }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      mimeType = ALLOWED_MIME_TYPES.includes(file.type) ? file.type : "image/jpeg";
       const buffer = await file.arrayBuffer();
       const bytes = new Uint8Array(buffer);
       let binary = "";
@@ -73,11 +85,18 @@ serve(async (req) => {
     } else {
       const body = await req.json();
       imageBase64 = body.imageBase64 || body.image;
-      mimeType = body.mimeType || "image/jpeg";
+      mimeType = ALLOWED_MIME_TYPES.includes(body.mimeType) ? body.mimeType : "image/jpeg";
     }
 
-    if (!imageBase64) {
+    if (!imageBase64 || typeof imageBase64 !== "string") {
       return new Response(JSON.stringify({ error: "No image provided. Send JSON with 'imageBase64' or multipart form with 'image' file." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (imageBase64.length > MAX_BASE64_LENGTH) {
+      return new Response(JSON.stringify({ error: "Image data too large. Maximum 10MB." }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -85,7 +104,11 @@ serve(async (req) => {
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+      console.error("Missing API key configuration");
+      return new Response(
+        JSON.stringify({ error: "Serviciul nu este configurat corect. Contactați administratorul." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const response = await fetch(
@@ -121,8 +144,7 @@ serve(async (req) => {
     );
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Processing service error:", response.status, errorText);
+      console.error("Upstream service error");
       return new Response(
         JSON.stringify({ error: "Serviciul este temporar indisponibil. Încearcă din nou mai târziu." }),
         { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -137,7 +159,7 @@ serve(async (req) => {
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       fields = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
     } catch {
-      console.error("Failed to parse AI response:", content);
+      console.error("Failed to parse response");
     }
 
     if ((fields as Record<string, string>)?.error === "WRONG_DOCUMENT_TYPE") {
@@ -151,7 +173,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
-    console.error("OCR ID Card error:", e);
+    console.error("OCR processing error");
     return new Response(
       JSON.stringify({ error: "Eroare la procesarea documentului. Încearcă din nou." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

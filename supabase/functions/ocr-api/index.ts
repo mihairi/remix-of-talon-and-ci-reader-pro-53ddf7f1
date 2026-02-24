@@ -6,6 +6,10 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_BASE64_LENGTH = Math.ceil(MAX_FILE_SIZE * 4 / 3);
+const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
 const SYSTEM_PROMPT = `You are an expert OCR system specialized in reading Romanian vehicle registration certificates (certificat de înmatriculare / talon auto).
 
 Given an image of a Romanian car registration document, extract ALL of the following fields. Return ONLY a valid JSON object with these exact keys. If a field is not visible or readable, use an empty string "".
@@ -51,7 +55,6 @@ serve(async (req) => {
     const contentType = req.headers.get("content-type") || "";
 
     if (contentType.includes("multipart/form-data")) {
-      // Handle multipart file upload
       const formData = await req.formData();
       const file = formData.get("image") as File | null;
       if (!file) {
@@ -60,24 +63,41 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      mimeType = file.type || "image/jpeg";
+
+      // Validate file size
+      if (file.size > MAX_FILE_SIZE) {
+        return new Response(JSON.stringify({ error: "File too large. Maximum 10MB." }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Validate MIME type
+      mimeType = ALLOWED_MIME_TYPES.includes(file.type) ? file.type : "image/jpeg";
+
       const buffer = await file.arrayBuffer();
       const bytes = new Uint8Array(buffer);
-      // Convert to base64
       let binary = "";
       for (let i = 0; i < bytes.length; i++) {
         binary += String.fromCharCode(bytes[i]);
       }
       imageBase64 = btoa(binary);
     } else {
-      // Handle JSON body
       const body = await req.json();
       imageBase64 = body.imageBase64 || body.image;
-      mimeType = body.mimeType || "image/jpeg";
+      mimeType = ALLOWED_MIME_TYPES.includes(body.mimeType) ? body.mimeType : "image/jpeg";
     }
 
-    if (!imageBase64) {
+    if (!imageBase64 || typeof imageBase64 !== "string") {
       return new Response(JSON.stringify({ error: "No image provided. Send JSON with 'imageBase64' or multipart form with 'image' file." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate base64 length
+    if (imageBase64.length > MAX_BASE64_LENGTH) {
+      return new Response(JSON.stringify({ error: "Image data too large. Maximum 10MB." }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -85,7 +105,11 @@ serve(async (req) => {
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+      console.error("Missing API key configuration");
+      return new Response(
+        JSON.stringify({ error: "Service not configured. Contact administrator." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const response = await fetch(
@@ -121,8 +145,7 @@ serve(async (req) => {
     );
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Processing service error:", response.status, errorText);
+      console.error("Upstream service error");
       return new Response(
         JSON.stringify({ error: "Serviciul este temporar indisponibil. Încearcă din nou mai târziu." }),
         { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -137,14 +160,14 @@ serve(async (req) => {
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       fields = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
     } catch {
-      console.error("Failed to parse AI response:", content);
+      console.error("Failed to parse response");
     }
 
     return new Response(JSON.stringify({ success: true, fields }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
-    console.error("OCR API error:", e);
+    console.error("OCR processing error");
     return new Response(
       JSON.stringify({ error: "Eroare la procesarea documentului. Încearcă din nou." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
