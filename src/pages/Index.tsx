@@ -6,7 +6,7 @@ import { mapApiResponse, type ParsedDocument } from "@/lib/documentParser";
 import { mapIdCardResponse, type ParsedIdCard } from "@/lib/idCardParser";
 import { runOllamaOcr } from "@/lib/ollamaOcr";
 import { loadSettings, type OllamaSettings } from "@/lib/ollamaSettings";
-import { ScanLine, RotateCcw, Car, CreditCard } from "lucide-react";
+import { RotateCcw, Car, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -22,10 +22,8 @@ const Index = () => {
   const processImage = useCallback(async (file: File) => {
     setIsProcessing(true);
     setResult(null);
-
     try {
       const fields = await runOllamaOcr(file, docType, ollamaSettings);
-
       if (docType === "talon") {
         const parsed = mapApiResponse(fields);
         setResult({ type: "talon", fields: parsed.fields });
@@ -36,64 +34,28 @@ const Index = () => {
       toast.success("Document procesat cu succes!");
     } catch (err: any) {
       console.error("OCR Error:", err);
-      toast.error(err?.message || "Eroare la procesarea imaginii. Încearcă din nou.");
+      toast.error(err?.message || "Eroare la procesarea imaginii.");
     } finally {
       setIsProcessing(false);
     }
   }, [docType, ollamaSettings]);
 
-  const handleReset = () => {
-    setResult(null);
-  };
-
-  const docConfig = {
-    talon: {
-      title: "Scanează talonul auto",
-      description: "Încarcă o fotografie cu certificatul de înmatriculare și extrage automat toate datele din document.",
-      uploadLabel: "Încarcă fotografia talonului",
-      features: [
-        { title: "On-premise", desc: "Procesare locală cu Ollama" },
-        { title: "24 Câmpuri", desc: "Toate rubricile A–X extrase" },
-        { title: "Copiere rapidă", desc: "Un click pentru a copia datele" },
-      ],
-    },
-    "id-card": {
-      title: "Scanează cartea de identitate",
-      description: "Încarcă o fotografie cu cartea de identitate (format vechi sau nou) și extrage automat toate datele personale.",
-      uploadLabel: "Încarcă fotografia cărții de identitate",
-      features: [
-        { title: "On-premise", desc: "Procesare locală cu Ollama" },
-        { title: "20 Câmpuri", desc: "Toate datele personale extrase" },
-        { title: "Format vechi & nou", desc: "Suport pentru ambele formate" },
-      ],
-    },
-  };
-
-  const config = docConfig[docType];
+  const uploadLabel = docType === "talon" ? "Încarcă fotografia talonului" : "Încarcă fotografia cărții de identitate";
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border glass sticky top-0 z-10">
-        <div className="container max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10 scanner-border">
-              <ScanLine className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-lg font-display font-bold text-foreground tracking-tight">
-                Talon și CI Scanner
-              </h1>
-              <p className="text-xs text-muted-foreground">
-                Cititor documente românești · {ollamaSettings.apiFormat === "ollama" ? "Ollama" : "OpenAI-compatible"} ({ollamaSettings.model})
-              </p>
-            </div>
-          </div>
+    <div className="min-h-screen bg-background p-4 md:p-8">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Top bar: settings + reset */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-lg font-display font-bold text-foreground">
+            Document Scanner
+          </h1>
           <div className="flex items-center gap-2">
             <OllamaSettingsDialog settings={ollamaSettings} onSave={setOllamaSettings} />
             {result && (
               <button
-                onClick={handleReset}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors text-sm font-medium"
+                onClick={() => setResult(null)}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors text-sm font-medium"
               >
                 <RotateCcw className="w-4 h-4" />
                 Scanare nouă
@@ -101,11 +63,9 @@ const Index = () => {
             )}
           </div>
         </div>
-      </header>
 
-      <main className="container max-w-6xl mx-auto px-4 py-8">
         {!result ? (
-          <div className="max-w-2xl mx-auto space-y-6">
+          <div className="space-y-4">
             <Tabs value={docType} onValueChange={(v) => setDocType(v as DocType)} className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="talon" className="flex items-center gap-2">
@@ -119,42 +79,19 @@ const Index = () => {
               </TabsList>
             </Tabs>
 
-            <div className="text-center space-y-3 mb-8">
-              <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-                {config.title}
-              </h2>
-              <p className="text-muted-foreground max-w-md mx-auto">
-                {config.description}
-              </p>
-            </div>
-
-            <ImageUpload onImageSelect={processImage} isProcessing={isProcessing} uploadLabel={config.uploadLabel} />
+            <ImageUpload onImageSelect={processImage} isProcessing={isProcessing} uploadLabel={uploadLabel} />
 
             {isProcessing && (
               <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground">
-                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                <span>Se analizează documentul cu {ollamaSettings.apiFormat === "ollama" ? "Ollama" : "serverul local"} ({ollamaSettings.model})...</span>
+                <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <span>Se procesează...</span>
               </div>
             )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-8">
-              {config.features.map((item) => (
-                <div
-                  key={item.title}
-                  className="p-4 rounded-xl bg-card border border-border text-center"
-                >
-                  <p className="font-display text-sm font-bold text-foreground">
-                    {item.title}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">{item.desc}</p>
-                </div>
-              ))}
-            </div>
           </div>
         ) : (
           <DocumentResults fields={result.fields} />
         )}
-      </main>
+      </div>
     </div>
   );
 };
