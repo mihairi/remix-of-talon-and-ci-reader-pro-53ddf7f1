@@ -6,9 +6,10 @@ import { mapApiResponse, type ParsedDocument } from "@/lib/documentParser";
 import { mapIdCardResponse, type ParsedIdCard } from "@/lib/idCardParser";
 import { runOllamaOcr } from "@/lib/ollamaOcr";
 import { loadSettings, type OllamaSettings } from "@/lib/ollamaSettings";
-import { RotateCcw, Car, CreditCard } from "lucide-react";
+import { RotateCcw, Car, CreditCard, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
 
 type DocType = "talon" | "id-card";
 type ResultData = { type: DocType; fields: { code: string; label: string; value: string }[] };
@@ -61,6 +62,13 @@ const Index = () => {
                 Scanare nouă
               </button>
             )}
+            <button
+              onClick={() => supabase.auth.signOut()}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors text-sm font-medium"
+              title="Deconectare"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
         </div>
 
