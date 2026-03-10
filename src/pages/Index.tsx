@@ -106,7 +106,7 @@ const Index = () => {
               </TabsList>
             </Tabs>
 
-            <ImageUpload onImageSelect={processImage} isProcessing={isProcessing} uploadLabel={uploadLabel} />
+            <ImageUpload onImageSelect={processImage} onPdfSelect={processPdf} isProcessing={isProcessing} uploadLabel={uploadLabel} />
 
             {isProcessing && (
               <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground">
