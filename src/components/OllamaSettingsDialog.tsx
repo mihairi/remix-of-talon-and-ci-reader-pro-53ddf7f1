@@ -191,16 +191,41 @@ const OllamaSettingsDialog = ({ settings, onSave }: OllamaSettingsDialogProps) =
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="ollama-model">Model</Label>
-              <Input
-                id="ollama-model"
-                value={model}
-                onChange={(e) => setModel(e.target.value)}
-                placeholder={DEFAULT_SETTINGS.model}
-              />
+              <div className="flex gap-2">
+                {availableModels.length > 0 ? (
+                  <Select value={model} onValueChange={setModel}>
+                    <SelectTrigger className="bg-background flex-1">
+                      <SelectValue placeholder="Selectează modelul" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover z-50">
+                      {availableModels.map((m) => (
+                        <SelectItem key={m} value={m}>{m}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input
+                    id="ollama-model"
+                    value={model}
+                    onChange={(e) => setModel(e.target.value)}
+                    placeholder={DEFAULT_SETTINGS.model}
+                    className="flex-1"
+                  />
+                )}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => fetchModels()}
+                  disabled={loadingModels}
+                  title="Încarcă lista de modele"
+                >
+                  <RefreshCw className={`w-4 h-4 ${loadingModels ? "animate-spin" : ""}`} />
+                </Button>
+              </div>
               <p className="text-xs text-muted-foreground">
                 {apiFormat === "ollama"
-                  ? <>Modelul vision instalat în Ollama (ex: <code className="bg-muted px-1 rounded">glm-ocr</code>, <code className="bg-muted px-1 rounded">llava</code>).</>
-                  : <>Modelul vision încărcat în server (ex: <code className="bg-muted px-1 rounded">qwen2-vl-7b</code>, <code className="bg-muted px-1 rounded">llava-v1.6</code>).</>}
+                  ? <>Apasă butonul de refresh pentru a încărca modelele din Ollama.</>
+                  : <>Apasă butonul de refresh pentru a încărca modelele din server.</>}
               </p>
             </div>
             <div className="pt-1 flex justify-end gap-2">
