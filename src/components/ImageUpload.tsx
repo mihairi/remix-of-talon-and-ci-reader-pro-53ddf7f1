@@ -1,28 +1,50 @@
 import { useCallback, useState } from "react";
-import { Upload, FileImage } from "lucide-react";
+import { Upload, FileImage, FileText } from "lucide-react";
 
 interface ImageUploadProps {
   onImageSelect: (file: File) => void | Promise<void>;
+  onPdfSelect?: (file: File) => void | Promise<void>;
   isProcessing: boolean;
   uploadLabel?: string;
 }
 
-const ImageUpload = ({ onImageSelect, isProcessing, uploadLabel = "Încarcă fotografia talonului" }: ImageUploadProps) => {
+const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+
+const ImageUpload = ({
+  onImageSelect,
+  onPdfSelect,
+  isProcessing,
+  uploadLabel = "Încarcă fotografia talonului",
+}: ImageUploadProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
+  const [isPdf, setIsPdf] = useState(false);
 
   const handleFile = useCallback(
     async (file: File) => {
-      if (!file.type.startsWith("image/")) return;
+      if (!ACCEPTED_TYPES.includes(file.type)) return;
+
+      if (file.type === "application/pdf") {
+        setIsPdf(true);
+        setPreview(null);
+        try {
+          await onPdfSelect?.(file);
+        } catch {
+          // errors handled upstream
+        }
+        return;
+      }
+
+      setIsPdf(false);
       const url = URL.createObjectURL(file);
       setPreview(url);
       try {
         await onImageSelect(file);
       } catch {
-        // errors are handled inside onImageSelect; swallow here to prevent unhandled rejections
+        // errors handled upstream
       }
     },
-    [onImageSelect]
+    [onImageSelect, onPdfSelect]
   );
 
   const handleDrop = useCallback(
@@ -62,7 +84,7 @@ const ImageUpload = ({ onImageSelect, isProcessing, uploadLabel = "Încarcă fot
       >
         <input
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/png,image/webp,application/pdf"
           className="hidden"
           onChange={(e) => {
             const file = e.target.files?.[0];
@@ -83,6 +105,13 @@ const ImageUpload = ({ onImageSelect, isProcessing, uploadLabel = "Încarcă fot
               </div>
             )}
           </div>
+        ) : isPdf && isProcessing ? (
+          <div className="flex flex-col items-center gap-4 p-8">
+            <div className="p-4 rounded-2xl bg-secondary">
+              <FileText className="w-10 h-10 text-primary" />
+            </div>
+            <p className="text-foreground font-medium">Se procesează PDF-ul...</p>
+          </div>
         ) : (
           <div className="flex flex-col items-center gap-4 p-8">
             <div className="p-4 rounded-2xl bg-secondary scanner-border">
@@ -97,13 +126,14 @@ const ImageUpload = ({ onImageSelect, isProcessing, uploadLabel = "Încarcă fot
                 {uploadLabel}
               </p>
               <p className="text-muted-foreground text-sm mt-1">
-                Trage imaginea aici sau apasă pentru a selecta
+                Trage fișierul aici sau apasă pentru a selecta
               </p>
             </div>
             <div className="flex gap-2 text-xs text-muted-foreground">
               <span className="px-2 py-1 rounded bg-secondary">JPG</span>
               <span className="px-2 py-1 rounded bg-secondary">PNG</span>
               <span className="px-2 py-1 rounded bg-secondary">WEBP</span>
+              <span className="px-2 py-1 rounded bg-secondary">PDF</span>
             </div>
           </div>
         )}
