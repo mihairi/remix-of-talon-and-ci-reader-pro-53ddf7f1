@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Settings2, Lock } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Settings2, Lock, RefreshCw } from "lucide-react";
 import {
   Dialog,
   DialogContent,
