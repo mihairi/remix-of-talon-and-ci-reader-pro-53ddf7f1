@@ -6,6 +6,7 @@ import { mapApiResponse, type ParsedDocument } from "@/lib/documentParser";
 import { mapIdCardResponse, type ParsedIdCard } from "@/lib/idCardParser";
 import { runOllamaOcr } from "@/lib/ollamaOcr";
 import { loadSettings, type OllamaSettings } from "@/lib/ollamaSettings";
+import { pdfToImages } from "@/lib/pdfUtils";
 import { RotateCcw, Car, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
