@@ -51,6 +51,32 @@ const OllamaSettingsDialog = ({ settings, onSave }: OllamaSettingsDialogProps) =
   const [baseUrl, setBaseUrl] = useState(settings.baseUrl);
   const [model, setModel] = useState(settings.model);
   const [apiFormat, setApiFormat] = useState<ApiFormat>(settings.apiFormat);
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [loadingModels, setLoadingModels] = useState(false);
+
+  const fetchModels = async (url?: string, format?: ApiFormat) => {
+    const base = (url || baseUrl).replace(/\/$/, "");
+    const isOpenAI = (format || apiFormat) === "openai-compatible";
+    setLoadingModels(true);
+    try {
+      const endpoint = isOpenAI ? `${base}/v1/models` : `${base}/api/tags`;
+      const res = await fetch(endpoint);
+      if (!res.ok) throw new Error("Failed");
+      const data = await res.json();
+      const models: string[] = isOpenAI
+        ? (data.data || []).map((m: any) => m.id)
+        : (data.models || []).map((m: any) => m.name);
+      setAvailableModels(models);
+      if (models.length > 0 && !models.includes(model)) {
+        setModel(models[0]);
+      }
+    } catch {
+      setAvailableModels([]);
+      toast.error("Nu s-a putut obține lista de modele. Verificați serverul.");
+    } finally {
+      setLoadingModels(false);
+    }
+  };
 
   const defaultUrl = apiFormat === "ollama" ? "http://localhost:11434" : "http://localhost:1234";
 
