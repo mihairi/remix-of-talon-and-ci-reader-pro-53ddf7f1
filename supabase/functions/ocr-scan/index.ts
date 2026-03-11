@@ -242,6 +242,16 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // ── API Key authentication ──
+    const apiKey = req.headers.get("x-api-key") || req.headers.get("authorization")?.replace("Bearer ", "");
+    const validKey = Deno.env.get("OCR_API_KEY");
+    if (!validKey || apiKey !== validKey) {
+      return new Response(
+        JSON.stringify({ error: "Acces neautorizat. API key invalid sau lipsă." }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     if (req.method !== "POST") {
       return new Response(JSON.stringify({ error: "Method not allowed" }), {
         status: 405,
