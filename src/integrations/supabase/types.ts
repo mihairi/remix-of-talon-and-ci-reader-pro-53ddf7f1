@@ -14,30 +14,7 @@ export type Database = {
   }
   public: {
     Tables: {
-      ocr_settings: {
-        Row: {
-          api_format: string
-          base_url: string
-          id: number
-          model: string
-          updated_at: string
-        }
-        Insert: {
-          api_format?: string
-          base_url?: string
-          id?: number
-          model?: string
-          updated_at?: string
-        }
-        Update: {
-          api_format?: string
-          base_url?: string
-          id?: number
-          model?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
