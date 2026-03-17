@@ -84,7 +84,7 @@ const Index = () => {
             Document Scanner
           </h1>
           <div className="flex items-center gap-2">
-            <OllamaSettingsDialog settings={ollamaSettings} onSave={setOllamaSettings} />
+            <OllamaSettingsDialog settings={ollamaSettings} />
             {result && (
               <button
                 onClick={() => setResult(null)}
