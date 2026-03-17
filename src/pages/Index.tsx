@@ -1,11 +1,11 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import ImageUpload from "@/components/ImageUpload";
 import DocumentResults from "@/components/DocumentResults";
 import OllamaSettingsDialog from "@/components/OllamaSettingsDialog";
 import { mapApiResponse, type ParsedDocument } from "@/lib/documentParser";
 import { mapIdCardResponse, type ParsedIdCard } from "@/lib/idCardParser";
 import { runOllamaOcr } from "@/lib/ollamaOcr";
-import { loadSettings, type OllamaSettings } from "@/lib/ollamaSettings";
+import { loadSettings, DEFAULT_SETTINGS, type OllamaSettings } from "@/lib/ollamaSettings";
 import { pdfToImages } from "@/lib/pdfUtils";
 import { RotateCcw, Car, CreditCard } from "lucide-react";
 import { toast } from "sonner";
@@ -18,7 +18,15 @@ const Index = () => {
   const [docType, setDocType] = useState<DocType>("talon");
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState<ResultData | null>(null);
-  const [ollamaSettings, setOllamaSettings] = useState<OllamaSettings>(loadSettings);
+  const [ollamaSettings, setOllamaSettings] = useState<OllamaSettings>(DEFAULT_SETTINGS);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+
+  useEffect(() => {
+    loadSettings().then((s) => {
+      setOllamaSettings(s);
+      setSettingsLoaded(true);
+    });
+  }, []);
 
   const processImage = useCallback(async (file: File) => {
     setIsProcessing(true);
@@ -48,7 +56,6 @@ const Index = () => {
       toast.info("Se convertesc paginile PDF...");
       const images = await pdfToImages(file);
       if (images.length === 0) throw new Error("PDF-ul nu conține pagini.");
-      // Process first page (main document page)
       toast.info(`Se procesează pagina 1 din ${images.length}...`);
       const fields = await runOllamaOcr(images[0], docType, ollamaSettings);
       if (docType === "talon") {
@@ -72,7 +79,6 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* Top bar: settings + reset */}
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-display font-bold text-foreground">
             Document Scanner

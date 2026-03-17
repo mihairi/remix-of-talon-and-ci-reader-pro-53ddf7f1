@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Settings2, Lock, RefreshCw } from "lucide-react";
 import {
   Dialog,
@@ -53,6 +53,7 @@ const OllamaSettingsDialog = ({ settings, onSave }: OllamaSettingsDialogProps) =
   const [apiFormat, setApiFormat] = useState<ApiFormat>(settings.apiFormat);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [loadingModels, setLoadingModels] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const fetchModels = async (url?: string, format?: ApiFormat) => {
     const base = (url || baseUrl).replace(/\/$/, "");
@@ -89,16 +90,23 @@ const OllamaSettingsDialog = ({ settings, onSave }: OllamaSettingsDialogProps) =
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const next: OllamaSettings = {
       baseUrl: baseUrl.trim() || defaultUrl,
       model: model.trim() || DEFAULT_SETTINGS.model,
       apiFormat,
     };
-    saveSettings(next);
-    onSave(next);
-    setOpen(false);
-    toast.success("Setările au fost salvate");
+    setSaving(true);
+    try {
+      await saveSettings(next);
+      onSave(next);
+      setOpen(false);
+      toast.success("Setările au fost salvate pentru toți utilizatorii");
+    } catch {
+      toast.error("Eroare la salvarea setărilor");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleFormatChange = (value: ApiFormat) => {
@@ -110,6 +118,12 @@ const OllamaSettingsDialog = ({ settings, onSave }: OllamaSettingsDialogProps) =
 
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
+    if (isOpen) {
+      // Sync local state with current settings
+      setBaseUrl(settings.baseUrl);
+      setModel(settings.model);
+      setApiFormat(settings.apiFormat);
+    }
     if (!isOpen) {
       setAuthenticated(false);
       setPassword("");
@@ -232,7 +246,9 @@ const OllamaSettingsDialog = ({ settings, onSave }: OllamaSettingsDialogProps) =
               <Button variant="outline" onClick={() => handleOpenChange(false)}>
                 Anulează
               </Button>
-              <Button onClick={handleSave}>Salvează</Button>
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? "Se salvează..." : "Salvează"}
+              </Button>
             </div>
           </div>
         )}
