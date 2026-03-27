@@ -42,9 +42,26 @@ const OllamaSettingsDialog = ({ settings }: OllamaSettingsDialogProps) => {
             <p className="text-sm bg-muted px-3 py-2 rounded-md font-mono">{settings.baseUrl}</p>
           </div>
           <div className="space-y-1">
-            <Label>Model</Label>
+            <Label>Model procesare</Label>
             <p className="text-sm bg-muted px-3 py-2 rounded-md font-mono">{settings.model}</p>
           </div>
+
+          <div className="border-t border-border pt-3 space-y-2">
+            <Label className="text-sm font-semibold">Pre-procesare OCR</Label>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Status</Label>
+              <p className={`text-sm px-3 py-2 rounded-md font-medium ${settings.ocrPreprocess.enabled ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+                {settings.ocrPreprocess.enabled ? "Activat" : "Dezactivat"}
+              </p>
+            </div>
+            {settings.ocrPreprocess.enabled && (
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Model OCR</Label>
+                <p className="text-sm bg-muted px-3 py-2 rounded-md font-mono">{settings.ocrPreprocess.model}</p>
+              </div>
+            )}
+          </div>
+
           <p className="text-xs text-muted-foreground">
             Setările se configurează din fișierul <code className="bg-muted px-1 rounded">public/ocr-settings.json</code>.
           </p>

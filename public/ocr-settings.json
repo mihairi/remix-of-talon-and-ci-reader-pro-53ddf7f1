@@ -1,5 +1,9 @@
 {
   "baseUrl": "http://localhost:11434",
   "model": "glm-ocr",
-  "apiFormat": "ollama"
+  "apiFormat": "ollama",
+  "ocrPreprocess": {
+    "enabled": false,
+    "model": "minicpm-v"
+  }
 }
