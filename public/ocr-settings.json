@@ -1,9 +1,9 @@
 {
-  "baseUrl": "http://localhost:11434",
-  "model": "glm-ocr",
-  "apiFormat": "ollama",
+  "baseUrl": "http://localhost:1234",
+  "model": "mistralai/ministral-3-3b",
+  "apiFormat": "openai-compatible",
   "ocrPreprocess": {
     "enabled": false,
-    "model": "minicpm-v"
+    "model": "glm-ocr"
   }
 }
