@@ -289,5 +289,23 @@ export async function runOllamaOcr(
     throw new Error(msg);
   }
 
+  // MRZ cross-check for ID cards
+  if (docType === "id-card" && parsed["MRZ"]) {
+    console.log("[OCR] Attempting MRZ cross-check...");
+    const mrzData = parseMrz(parsed["MRZ"]);
+    if (mrzData) {
+      console.log("[OCR] MRZ parsed:", mrzData);
+      const { corrected, corrections } = crossCheckWithMrz(parsed, mrzData);
+      if (corrections.length > 0) {
+        console.log("[OCR] MRZ corrections applied:", corrections);
+      } else {
+        console.log("[OCR] MRZ cross-check: no corrections needed");
+      }
+      return corrected;
+    } else {
+      console.log("[OCR] MRZ could not be parsed, skipping cross-check");
+    }
+  }
+
   return parsed;
 }
