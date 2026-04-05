@@ -1,4 +1,6 @@
 import { OllamaSettings } from "./ollamaSettings";
+import { preprocessImage } from "./imagePreprocess";
+import { parseMrz, crossCheckWithMrz } from "./mrzParser";
 
 const TALON_SYSTEM_PROMPT = `You are an expert OCR system specialized in reading Romanian vehicle registration certificates (certificat de înmatriculare / talon auto).
 
