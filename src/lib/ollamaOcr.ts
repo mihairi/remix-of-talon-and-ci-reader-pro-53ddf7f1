@@ -240,11 +240,16 @@ export async function runOllamaOcr(
 ): Promise<Record<string, string>> {
   const usePreprocess = settings.ocrPreprocess.enabled;
 
+  // Image preprocessing step (contrast, sharpen, denoise, deskew)
+  console.log("[OCR] Starting image preprocessing...");
+  const processedFile = await preprocessImage(file);
+  console.log("[OCR] Image preprocessing complete");
+
   let content: string;
 
   if (usePreprocess) {
     // Step 1: OCR with dedicated model
-    const rawText = await runOcrPreprocess(file, settings);
+    const rawText = await runOcrPreprocess(processedFile, settings);
     console.log("OCR Preprocess raw text:", rawText);
 
     // Step 2: Structure with LLM (text-only, no image)
@@ -254,7 +259,7 @@ export async function runOllamaOcr(
     content = await callLlm(settings, systemPrompt, userText);
   } else {
     // Single-step: vision model
-    const imageBase64 = await fileToBase64(file);
+    const imageBase64 = await fileToBase64(processedFile);
     const systemPrompt = docType === "talon" ? TALON_SYSTEM_PROMPT : ID_CARD_SYSTEM_PROMPT;
     const userText = docType === "talon"
       ? "Extract all fields from this Romanian vehicle registration certificate image."
