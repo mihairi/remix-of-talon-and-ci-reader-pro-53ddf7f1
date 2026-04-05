@@ -1,4 +1,6 @@
 import { OllamaSettings } from "./ollamaSettings";
+import { preprocessImage } from "./imagePreprocess";
+import { parseMrz, crossCheckWithMrz } from "./mrzParser";
 
 const TALON_SYSTEM_PROMPT = `You are an expert OCR system specialized in reading Romanian vehicle registration certificates (certificat de înmatriculare / talon auto).
 
@@ -238,11 +240,16 @@ export async function runOllamaOcr(
 ): Promise<Record<string, string>> {
   const usePreprocess = settings.ocrPreprocess.enabled;
 
+  // Image preprocessing step (contrast, sharpen, denoise, deskew)
+  console.log("[OCR] Starting image preprocessing...");
+  const processedFile = await preprocessImage(file);
+  console.log("[OCR] Image preprocessing complete");
+
   let content: string;
 
   if (usePreprocess) {
     // Step 1: OCR with dedicated model
-    const rawText = await runOcrPreprocess(file, settings);
+    const rawText = await runOcrPreprocess(processedFile, settings);
     console.log("OCR Preprocess raw text:", rawText);
 
     // Step 2: Structure with LLM (text-only, no image)
@@ -252,7 +259,7 @@ export async function runOllamaOcr(
     content = await callLlm(settings, systemPrompt, userText);
   } else {
     // Single-step: vision model
-    const imageBase64 = await fileToBase64(file);
+    const imageBase64 = await fileToBase64(processedFile);
     const systemPrompt = docType === "talon" ? TALON_SYSTEM_PROMPT : ID_CARD_SYSTEM_PROMPT;
     const userText = docType === "talon"
       ? "Extract all fields from this Romanian vehicle registration certificate image."
@@ -285,6 +292,24 @@ export async function runOllamaOcr(
         ? "Documentul din fotografie nu este un Talon auto. Te rugăm să încarci o fotografie cu certificatul de înmatriculare."
         : "Documentul din fotografie nu este o Carte de identitate. Te rugăm să încarci o fotografie cu cartea de identitate.";
     throw new Error(msg);
+  }
+
+  // MRZ cross-check for ID cards
+  if (docType === "id-card" && parsed["MRZ"]) {
+    console.log("[OCR] Attempting MRZ cross-check...");
+    const mrzData = parseMrz(parsed["MRZ"]);
+    if (mrzData) {
+      console.log("[OCR] MRZ parsed:", mrzData);
+      const { corrected, corrections } = crossCheckWithMrz(parsed, mrzData);
+      if (corrections.length > 0) {
+        console.log("[OCR] MRZ corrections applied:", corrections);
+      } else {
+        console.log("[OCR] MRZ cross-check: no corrections needed");
+      }
+      return corrected;
+    } else {
+      console.log("[OCR] MRZ could not be parsed, skipping cross-check");
+    }
   }
 
   return parsed;
