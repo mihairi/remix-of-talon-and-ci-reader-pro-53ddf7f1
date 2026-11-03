@@ -6,7 +6,6 @@ import { mapApiResponse, type ParsedDocument } from "@/lib/documentParser";
 import { mapIdCardResponse, type ParsedIdCard } from "@/lib/idCardParser";
 import { runOllamaOcr } from "@/lib/ollamaOcr";
 import { loadSettings, DEFAULT_SETTINGS, type OllamaSettings } from "@/lib/ollamaSettings";
-import { pdfToImages } from "@/lib/pdfUtils";
 import { RotateCcw, Car, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -49,30 +48,7 @@ const Index = () => {
     }
   }, [docType, ollamaSettings]);
 
-  const processPdf = useCallback(async (file: File) => {
-    setIsProcessing(true);
-    setResult(null);
-    try {
-      toast.info("Se convertesc paginile PDF...");
-      const images = await pdfToImages(file);
-      if (images.length === 0) throw new Error("PDF-ul nu conține pagini.");
-      toast.info(`Se procesează pagina 1 din ${images.length}...`);
-      const fields = await runOllamaOcr(images[0], docType, ollamaSettings);
-      if (docType === "talon") {
-        const parsed = mapApiResponse(fields);
-        setResult({ type: "talon", fields: parsed.fields });
-      } else {
-        const parsed = mapIdCardResponse(fields);
-        setResult({ type: "id-card", fields: parsed.fields });
-      }
-      toast.success("Document PDF procesat cu succes!");
-    } catch (err: any) {
-      console.error("PDF OCR Error:", err);
-      toast.error(err?.message || "Eroare la procesarea PDF-ului.");
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [docType, ollamaSettings]);
+  const processPdf = processImage;
 
   const uploadLabel = docType === "talon" ? "Încarcă fotografia talonului" : "Încarcă fotografia cărții de identitate";
 
