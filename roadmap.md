@@ -1,0 +1,2 @@
+- [x] Python OCR service (preprocess, deskew, YOLO layout, PaddleOCR, gated VLM fallback, MRZ/CNP, API)
+- [x] Web app calls the service
