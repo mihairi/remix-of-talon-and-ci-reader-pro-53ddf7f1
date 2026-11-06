@@ -1,3 +1,3 @@
 - [x] Python OCR service (preprocess, deskew, YOLO layout, PaddleOCR, gated VLM fallback, MRZ/CNP, API)
 - [x] Web app calls the service
-- [ ] Deliver Python service v7: remove YOLO and unconditional LLM, extract fields locally, validate MRZ/CNP, targeted fallback, diagnostics and regression tests.
+- [x] Delivered Python service v7: removed YOLO/unconditional LLM, added anchors, checksum validation, targeted fallback and diagnostics; 24 tests pass. Real-document accuracy remains unmeasured without samples/runtime.
