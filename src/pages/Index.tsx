@@ -2,8 +2,8 @@ import { useState, useCallback, useEffect } from "react";
 import ImageUpload from "@/components/ImageUpload";
 import DocumentResults from "@/components/DocumentResults";
 import OllamaSettingsDialog from "@/components/OllamaSettingsDialog";
-import { mapApiResponse, type ParsedDocument } from "@/lib/documentParser";
-import { mapIdCardResponse, type ParsedIdCard } from "@/lib/idCardParser";
+import { mapApiResponse, type DocumentField } from "@/lib/documentParser";
+import { mapIdCardResponse } from "@/lib/idCardParser";
 import { runOllamaOcr } from "@/lib/ollamaOcr";
 import { loadSettings, DEFAULT_SETTINGS, type OllamaSettings } from "@/lib/ollamaSettings";
 import { RotateCcw, Car, CreditCard } from "lucide-react";
@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type DocType = "talon" | "id-card";
-type ResultData = { type: DocType; fields: { code: string; label: string; value: string }[] };
+type ResultData = { type: DocType; fields: DocumentField[] };
 
 const Index = () => {
   const [docType, setDocType] = useState<DocType>("talon");
@@ -31,12 +31,12 @@ const Index = () => {
     setIsProcessing(true);
     setResult(null);
     try {
-      const fields = await runOllamaOcr(file, docType, ollamaSettings);
+      const response = await runOllamaOcr(file, docType, ollamaSettings);
       if (docType === "talon") {
-        const parsed = mapApiResponse(fields);
+        const parsed = mapApiResponse(response.fields, response.field_metadata);
         setResult({ type: "talon", fields: parsed.fields });
       } else {
-        const parsed = mapIdCardResponse(fields);
+        const parsed = mapIdCardResponse(response.fields, response.field_metadata);
         setResult({ type: "id-card", fields: parsed.fields });
       }
       toast.success("Document procesat cu succes!");

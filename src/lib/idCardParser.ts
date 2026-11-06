@@ -1,9 +1,11 @@
 import { validateCnp } from "@/lib/cnpValidator";
+import type { FieldMetadata, FieldMetadataMap } from "./fieldMetadata";
 
 export interface IdCardField {
   code: string;
   label: string;
   value: string;
+  metadata?: FieldMetadata;
 }
 
 export interface ParsedIdCard {
@@ -33,7 +35,7 @@ const ID_FIELD_MAP: Record<string, { code: string; label: string }> = {
   MRZ: { code: "MRZ", label: "Machine Readable Zone" },
 };
 
-export function mapIdCardResponse(apiFields: Record<string, string>): ParsedIdCard {
+export function mapIdCardResponse(apiFields: Record<string, string>, metadata: FieldMetadataMap = {}): ParsedIdCard {
   // Derive birth date from CNP validation instead of AI response
   let cnpBirthDate = "";
   const cnpValue = apiFields["CNP"]?.trim();
@@ -48,6 +50,11 @@ export function mapIdCardResponse(apiFields: Record<string, string>): ParsedIdCa
     code: meta.code,
     label: meta.label,
     value: key === "DATA_NASTERII" ? cnpBirthDate : (apiFields[key]?.trim() || ""),
+    metadata: key === "DATA_NASTERII"
+      ? cnpBirthDate ? { ...metadata.CNP, method: metadata.CNP?.method ?? null,
+          confidence: metadata.CNP?.confidence ?? null, source: "cnp-checksum" }
+        : { method: null, confidence: null, status: "missing" }
+      : metadata[key],
   }));
 
   return { fields };

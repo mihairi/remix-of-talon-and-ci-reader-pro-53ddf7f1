@@ -1,7 +1,10 @@
+import type { FieldMetadata, FieldMetadataMap } from "./fieldMetadata";
+
 export interface DocumentField {
   code: string;
   label: string;
   value: string;
+  metadata?: FieldMetadata;
 }
 
 export interface ParsedDocument {
@@ -35,11 +38,12 @@ const FIELD_MAP: Record<string, { code: string; label: string }> = {
   X: { code: "X", label: "Numărul certificatului" },
 };
 
-export function mapApiResponse(apiFields: Record<string, string>): ParsedDocument {
+export function mapApiResponse(apiFields: Record<string, string>, metadata: FieldMetadataMap = {}): ParsedDocument {
   const fields: DocumentField[] = Object.entries(FIELD_MAP).map(([key, meta]) => ({
     code: meta.code,
     label: meta.label,
     value: apiFields[key]?.trim() || "",
+    metadata: metadata[key],
   }));
 
   return { fields };
