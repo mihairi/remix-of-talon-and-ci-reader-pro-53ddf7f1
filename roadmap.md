@@ -1,4 +1,4 @@
 - [x] Python OCR service (preprocess, deskew, YOLO layout, PaddleOCR, gated VLM fallback, MRZ/CNP, API)
 - [x] Web app calls the service
 - [x] Delivered Python service v7: removed YOLO/unconditional LLM, added anchors, checksum validation, targeted fallback and diagnostics; 24 tests pass. Real-document accuracy remains unmeasured without samples/runtime.
-- [ ] Add per-field OCR/LLM method and confidence to Python API and screen; deliver v8 and verify metadata flows.
+- [x] Added per-field OCR/LLM method and confidence to API and screen; delivered v8, 31 Python/4 frontend tests passed and simulated upload display verified desktop/mobile. Real OCR inference remains unverified.
