@@ -2,3 +2,4 @@
 - Deliver the standalone Python OCR server as a versioned source archive; keep processing and API logic there, not in the React application, because OCR requires native Python dependencies.
 - Use local label-anchor extraction and field validation before optional model fallback; reject label translations and detected redacted fragments as values, retain anchored address-subfield evidence and explain skipped routing; send only bounded unresolved-field crops, never the full page, to avoid label leakage and fabricated masked data.
 - Keep field values backward-compatible and return provenance in a separate field_metadata map; unknown model confidence must remain null, never inferred from validation or the earlier OCR score.
+- Configure accent normalization and observed-text review thresholds in the Python service's shared JSON; preserve original OCR scores and structured-field validation so spelling tolerance never fabricates confidence or bypasses identity checks.
