@@ -38,6 +38,7 @@ const CnpBadge = ({ result }: { result: CnpValidationResult }) => {
 const FieldCard = ({ field, cnpValidation }: { field: DocumentField; cnpValidation?: CnpValidationResult }) => {
   const [copied, setCopied] = useState(false);
   const hasValue = field.value.length > 0;
+  const isAbsent = field.metadata?.status === "absent" && field.metadata?.source === "address-rule";
 
   const handleCopy = () => {
     if (!hasValue) return;
@@ -68,12 +69,12 @@ const FieldCard = ({ field, cnpValidation }: { field: DocumentField; cnpValidati
           </div>
           <p className="text-xs text-muted-foreground mb-2">{field.label}</p>
           <p className="text-sm font-medium text-foreground break-all font-display">
-            {hasValue ? field.value : "—"}
+            {hasValue ? field.value : isAbsent ? "Nu există" : "—"}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-            <span>Metodă: <span className="font-medium text-foreground">{hasValue ? field.metadata?.method ?? "—" : "—"}</span></span>
-            <span title={field.metadata?.confidence_basis === "inherited-cnp" ? "Scor preluat din recunoașterea CNP-ului" : field.metadata?.confidence_basis === "mrz-min" ? "Cel mai mic scor OCR al liniilor MRZ" : undefined}>
-              Încredere: <span className="font-medium text-foreground">{hasValue && typeof field.metadata?.confidence === "number"
+            <span>Metodă: <span className="font-medium text-foreground">{isAbsent ? "Regulă locală" : hasValue ? field.metadata?.method ?? "—" : "—"}</span></span>
+            <span title={isAbsent ? "Încredere în decizia de absență; nu este un scor de recunoaștere OCR" : field.metadata?.confidence_basis === "inherited-cnp" ? "Scor preluat din recunoașterea CNP-ului" : field.metadata?.confidence_basis === "mrz-min" ? "Cel mai mic scor OCR al liniilor MRZ" : undefined}>
+              Încredere: <span className="font-medium text-foreground">{(hasValue || isAbsent) && typeof field.metadata?.confidence === "number"
                 ? `${(field.metadata.confidence * 100).toLocaleString("ro-RO", { maximumFractionDigits: 1 })}%`
                 : hasValue ? "Indisponibilă" : "—"}</span>
             </span>
