@@ -1,4 +1,4 @@
 {
-  "serviceUrl": "http://localhost:8000",
+  "serviceUrl": "http://10.200.20.1:8085",
   "apiKey": ""
 }
