@@ -1,3 +1,4 @@
+- [ ] Enforce CI date requirements and warn for new front-only expiry without requesting unseen text; verify and deliver v23.
 - [x] Delivered Python v22: reject translated/split issuer labels, recover real neighbors and verify authenticated missing-field model fallback with null confidence; 110 tests pass, one PaddleOCR-dependent test unavailable. Source CI/live model unavailable.
 - [x] Delivered Python v21: join complete split CI series/number; incomplete serial becomes empty and reaches missing-field fallback; redactions and authenticated API replay verified. 100 tests pass, one PaddleOCR-dependent test unavailable. Real source CI/live model unavailable.
 - [x] Delivered Python v20: rejected truncated Last/First labels, recovered real neighboring values and verified authenticated API missing-name LLM routing with null confidence; 91 available tests pass, one PaddleOCR-dependent test unavailable. Real source CI and live model server unavailable.
