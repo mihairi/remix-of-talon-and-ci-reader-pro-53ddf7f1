@@ -4,6 +4,8 @@ export interface FieldMetadata {
   confidence_basis?: string | null;
   source?: string | null;
   status?: string;
+  required?: boolean;
+  reason?: string;
 }
 
 export type FieldMetadataMap = Record<string, FieldMetadata>;
@@ -22,6 +24,8 @@ export function normalizeMetadata(value: unknown): FieldMetadataMap {
       confidence_basis: typeof data.confidence_basis === "string" ? data.confidence_basis : null,
       source: typeof data.source === "string" ? data.source : null,
       status: typeof data.status === "string" ? data.status : undefined,
+      required: data.required === true,
+      reason: typeof data.reason === "string" ? data.reason : undefined,
     };
   }
   return result;

@@ -39,6 +39,8 @@ const FieldCard = ({ field, cnpValidation }: { field: DocumentField; cnpValidati
   const [copied, setCopied] = useState(false);
   const hasValue = field.value.length > 0;
   const isAbsent = field.metadata?.status === "absent" && field.metadata?.source === "address-rule";
+  const isReverseOnly = !hasValue && field.metadata?.status === "not-on-scanned-side";
+  const isRequiredMissing = !hasValue && field.metadata?.required && !isReverseOnly;
 
   const handleCopy = () => {
     if (!hasValue) return;
@@ -69,8 +71,10 @@ const FieldCard = ({ field, cnpValidation }: { field: DocumentField; cnpValidati
           </div>
           <p className="text-xs text-muted-foreground mb-2">{field.label}</p>
           <p className="text-sm font-medium text-foreground break-all font-display">
-            {hasValue ? field.value : isAbsent ? "Nu există" : "—"}
+            {hasValue ? field.value : isAbsent ? "Nu există" : isReverseOnly ? "Pe verso" : "—"}
           </p>
+          {isReverseOnly && <p className="mt-2 text-xs text-muted-foreground">{field.metadata?.reason ?? "Data expirării nu poate fi preluată din scanarea doar a feței."}</p>}
+          {isRequiredMissing && <p className="mt-2 text-xs text-destructive">Dată obligatorie nerecunoscută; necesită verificare.</p>}
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
             <span>Metodă: <span className="font-medium text-foreground">{isAbsent ? "Regulă locală" : hasValue ? field.metadata?.method ?? "—" : "—"}</span></span>
             <span title={isAbsent ? "Încredere în decizia de absență; nu este un scor de recunoaștere OCR" : field.metadata?.confidence_basis === "inherited-cnp" ? "Scor preluat din recunoașterea CNP-ului" : field.metadata?.confidence_basis === "mrz-min" ? "Cel mai mic scor OCR al liniilor MRZ" : undefined}>
