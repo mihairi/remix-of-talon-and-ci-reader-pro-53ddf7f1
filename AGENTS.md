@@ -6,3 +6,4 @@
 - Represent confirmed address-subfield absence as an empty value with explicit local-rule status and decision confidence, separate from OCR recognition scores, so routing skips absent fields without inventing text.
 - Measure Python activity wall time per request with a monotonic clock, accumulating retries and failed model calls; report lock waiting separately and exclude debug persistence from processing totals.
 - Preload Paddle models at application startup; expose shared model/CPU/orientation settings, retain compatible Latin recognition, and choose performance defaults only after sample field comparison; time OCR substages without changing recognition results.
+- Run same-model FP32 ONNX/OpenVINO through pinned PaddleX preprocessing and decoding adapters; crop only reliable enclosing borders and skip page orientation only after upright anchor evidence, counting uncertain retries, because acceleration must retain field and redaction behavior.
