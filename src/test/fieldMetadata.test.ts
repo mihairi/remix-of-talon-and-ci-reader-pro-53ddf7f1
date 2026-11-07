@@ -4,6 +4,14 @@ import { mapApiResponse } from "../lib/documentParser";
 import { mapIdCardResponse } from "../lib/idCardParser";
 
 describe("field recognition metadata", () => {
+  it("preserves reverse-only expiry without invented confidence", () => {
+    const result = normalizeMetadata({ DATA_EXPIRARII: { status: "not-on-scanned-side", required: true,
+      reason: "Data expirării se află pe verso", confidence: null } });
+    expect(result.DATA_EXPIRARII.status).toBe("not-on-scanned-side");
+    expect(result.DATA_EXPIRARII.required).toBe(true);
+    expect(result.DATA_EXPIRARII.confidence).toBeNull();
+    expect(mapIdCardResponse({ DATA_EXPIRARII: "" }, result).fields.find(f => f.code === "Expiră")?.value).toBe("");
+  });
   it("preserves the 90% local absence decision without manufacturing an OCR score", () => {
     const metadata = normalizeMetadata({ DOMICILIU_SCARA: {
       method: null, confidence: 0.90, confidence_basis: "address-absence-rule",
