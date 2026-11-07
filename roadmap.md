@@ -3,4 +3,4 @@
 - [x] Delivered Python service v7: removed YOLO/unconditional LLM, added anchors, checksum validation, targeted fallback and diagnostics; 24 tests pass. Real-document accuracy remains unmeasured without samples/runtime.
 - [x] Added per-field OCR/LLM method and confidence to API and screen; delivered v8, 31 Python/4 frontend tests passed and simulated upload display verified desktop/mobile. Real OCR inference remains unverified.
 - [x] Corrected bilingual label values, address-subfield evidence and bounded missing-field LLM routing in Python v9; 39 tests pass including simulated scan API flow. Real Paddle/LLM accuracy remains unverified without a source document and user server.
-- [ ] Test uploaded redacted CI with real PaddleOCR, correct extraction failures and deliver v10 with regression coverage.
+- [x] Tested uploaded redacted CI through authenticated FastAPI with real PaddleOCR; corrected deskew array handling, label/value neighbors, locality, issuer, validity and redaction suppression; v10 passed 42 tests. Live LLM inference unavailable (no local model server); bounded routing verified by regression tests.
