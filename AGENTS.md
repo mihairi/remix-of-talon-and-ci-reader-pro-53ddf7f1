@@ -4,3 +4,4 @@
 - Keep field values backward-compatible and return provenance in a separate field_metadata map; unknown model confidence must remain null, never inferred from validation or the earlier OCR score.
 - Configure accent normalization and observed-text review thresholds in the Python service's shared JSON; preserve original OCR scores and structured-field validation so spelling tolerance never fabricates confidence or bypasses identity checks.
 - Represent confirmed address-subfield absence as an empty value with explicit local-rule status and decision confidence, separate from OCR recognition scores, so routing skips absent fields without inventing text.
+- Measure Python activity wall time per request with a monotonic clock, accumulating retries and failed model calls; report lock waiting separately and exclude debug persistence from processing totals.

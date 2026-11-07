@@ -1,3 +1,4 @@
+- [ ] Deliver Python v14 with accumulated preprocessing/OCR/LLM debug durations and verified timing tests.
 - [x] Delivered Python v13: Tronson 1 as Bloc, absent staircase decision at 90% without LLM; 60 Python and 5 frontend tests pass, authenticated API with replayed sample OCR and simulated desktop/mobile display verified. Real Paddle/live LLM not rerun.
 - [x] Python OCR service (preprocess, deskew, YOLO layout, PaddleOCR, gated VLM fallback, MRZ/CNP, API)
 - [x] Web app calls the service
