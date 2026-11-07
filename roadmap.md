@@ -1,3 +1,4 @@
+- [x] Delivered v15: preloaded compatible OCR models, configurable CPU/orientation, detailed substage timings and masked-MRZ retry skipping; 69 tests pass. Real authenticated sample improved from 37–43s warm to 25–27s in sandbox; mobile detector rejected for missing fields. Rotated accuracy degrades; GPU/live LLM unavailable.
 - [x] Delivered Python v14 with accumulated preprocessing/OCR/LLM durations, per-model-attempt timing and separate queue/processing totals; 63 tests pass, including authenticated stubbed /scan and debug-file readback. Real Paddle/live LLM latency not measured.
 - [x] Delivered Python v13: Tronson 1 as Bloc, absent staircase decision at 90% without LLM; 60 Python and 5 frontend tests pass, authenticated API with replayed sample OCR and simulated desktop/mobile display verified. Real Paddle/live LLM not rerun.
 - [x] Python OCR service (preprocess, deskew, YOLO layout, PaddleOCR, gated VLM fallback, MRZ/CNP, API)
