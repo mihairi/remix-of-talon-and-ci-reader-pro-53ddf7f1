@@ -2,3 +2,4 @@
 - [x] Web app calls the service
 - [x] Delivered Python service v7: removed YOLO/unconditional LLM, added anchors, checksum validation, targeted fallback and diagnostics; 24 tests pass. Real-document accuracy remains unmeasured without samples/runtime.
 - [x] Added per-field OCR/LLM method and confidence to API and screen; delivered v8, 31 Python/4 frontend tests passed and simulated upload display verified desktop/mobile. Real OCR inference remains unverified.
+- [ ] Correct bilingual labels mistaken for values, route anchored missing fields to local LLM, and deliver tested Python v9.
