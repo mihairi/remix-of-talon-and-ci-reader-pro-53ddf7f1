@@ -1,3 +1,4 @@
+- [x] Delivered Python v13: Tronson 1 as Bloc, absent staircase decision at 90% without LLM; 60 Python and 5 frontend tests pass, authenticated API with replayed sample OCR and simulated desktop/mobile display verified. Real Paddle/live LLM not rerun.
 - [x] Python OCR service (preprocess, deskew, YOLO layout, PaddleOCR, gated VLM fallback, MRZ/CNP, API)
 - [x] Web app calls the service
 - [x] Delivered v12: domicile Sector 6/Ilfov extraction; 52 tests pass including sample OCR-line replay with Sector 6 at 95% and zero LLM calls for that field. New real Paddle/live LLM inference not performed.
