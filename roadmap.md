@@ -1,6 +1,6 @@
 - [x] Python OCR service (preprocess, deskew, YOLO layout, PaddleOCR, gated VLM fallback, MRZ/CNP, API)
 - [x] Web app calls the service
-- [ ] Deliver v12: extract domicile sector/county per user examples and verify local routing.
+- [x] Delivered v12: domicile Sector 6/Ilfov extraction; 52 tests pass including sample OCR-line replay with Sector 6 at 95% and zero LLM calls for that field. New real Paddle/live LLM inference not performed.
 - [x] Delivered Python v11 with diacritics-tolerant text and configurable observed-text confidence routing; 47 tests pass, including stubbed /scan with zero LLM calls at 60% and unchanged OCR confidence. Real Paddle/LLM inference not re-tested.
 - [x] Delivered Python service v7: removed YOLO/unconditional LLM, added anchors, checksum validation, targeted fallback and diagnostics; 24 tests pass. Real-document accuracy remains unmeasured without samples/runtime.
 - [x] Added per-field OCR/LLM method and confidence to API and screen; delivered v8, 31 Python/4 frontend tests passed and simulated upload display verified desktop/mobile. Real OCR inference remains unverified.
