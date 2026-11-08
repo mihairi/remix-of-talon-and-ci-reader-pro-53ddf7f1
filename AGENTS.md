@@ -1,5 +1,6 @@
 # Architecture rules
 - Accept full or standalone classic CI MRZ data rows with applicable field check digits; normalize nationality O/0 only in its slot, derive birth date only from validated CNP, retain and flag conflicting valid printed CNPs, preserve MRZ provenance and never recover redacted fields.
+- Parse names from TD2 row one and TD1 row three only in complete MRZ context; validate alphabet/separators and reject label fragments, compare normalized printed spelling and retain conflicts for review, because MRZ names have no checksum and composite checks do not cover them.
 - Apply date requirements in the Python date-policy module; skip reverse-only expiry only with positive new-front text evidence, keep unknown layouts unresolved, and pass field status to the UI without inventing dates or confidence.
 - Deliver the standalone Python OCR server as a versioned source archive; keep processing and API logic there, not in the React application, because OCR requires native Python dependencies.
 - With fallback enabled, missing/invalid critical CI fields bypass call/noise/page-option limits and use a single-field page request if no safe crop remains; explicit global disable, redaction and unavailable-side rules prevail, so required attempts do not imply fabricated values.
