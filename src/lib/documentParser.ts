@@ -25,7 +25,8 @@ const FIELD_MAP: Record<string, { code: string; label: string }> = {
   F_2: { code: "F.2", label: "Masa maximă autorizată" },
   G: { code: "G", label: "Masa vehiculului gol" },
   H: { code: "H", label: "Perioada de valabilitate" },
-  I: { code: "I", label: "Data eliberării certificatului" },
+  I: { code: "I", label: "Data înmatriculării mașinii" },
+  I_1: { code: "I1", label: "Data emiterii certificatului" },
   J: { code: "J", label: "Categoria vehiculului" },
   K: { code: "K", label: "Numărul omologării europene" },
   P_1: { code: "P.1", label: "Cilindree (cmc)" },
@@ -35,7 +36,10 @@ const FIELD_MAP: Record<string, { code: string; label: string }> = {
   R: { code: "R", label: "Culoarea vehiculului" },
   S_1: { code: "S.1", label: "Număr locuri pe scaune" },
   S_2: { code: "S.2", label: "Număr locuri în picioare" },
-  X: { code: "X", label: "Numărul certificatului" },
+  X: { code: "X", label: "Seria cărții de identitate a vehiculului (CIV)" },
+  Y: { code: "Y", label: "Seria CIV (varianta Y)" },
+  NR_CERTIFICAT: { code: "Nr. certificat", label: "Numărul certificatului de înmatriculare" },
+  DATA_URMATOAREI_ITP: { code: "ITP", label: "Data următoarei inspecții tehnice" },
 };
 
 export function mapApiResponse(apiFields: Record<string, string>, metadata: FieldMetadataMap = {}): ParsedDocument {

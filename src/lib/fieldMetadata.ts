@@ -6,6 +6,8 @@ export interface FieldMetadata {
   status?: string;
   required?: boolean;
   reason?: string;
+  comparison?: string;
+  pages?: number[];
 }
 
 export type FieldMetadataMap = Record<string, FieldMetadata>;
@@ -26,6 +28,8 @@ export function normalizeMetadata(value: unknown): FieldMetadataMap {
       status: typeof data.status === "string" ? data.status : undefined,
       required: data.required === true,
       reason: typeof data.reason === "string" ? data.reason : undefined,
+      comparison: typeof data.comparison === "string" ? data.comparison : undefined,
+      pages: Array.isArray(data.pages) ? data.pages.filter((p): p is number => typeof p === "number" && Number.isInteger(p) && p > 0) : undefined,
     };
   }
   return result;
