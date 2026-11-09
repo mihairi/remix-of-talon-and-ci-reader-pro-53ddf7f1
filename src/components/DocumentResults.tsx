@@ -39,6 +39,7 @@ const FieldCard = ({ field, cnpValidation }: { field: DocumentField; cnpValidati
   const [copied, setCopied] = useState(false);
   const hasValue = field.value.length > 0;
   const isAbsent = field.metadata?.status === "absent" && field.metadata?.source === "address-rule";
+  const isBlankOnDocument = !hasValue && field.metadata?.status === "absent" && field.metadata?.source === "label-rule";
   const isReverseOnly = !hasValue && field.metadata?.status === "not-on-scanned-side";
   const isAnnexOnly = isReverseOnly && field.code === "ITP";
   const isRequiredMissing = !hasValue && field.metadata?.required && !isReverseOnly;
@@ -72,14 +73,14 @@ const FieldCard = ({ field, cnpValidation }: { field: DocumentField; cnpValidati
           </div>
           <p className="text-xs text-muted-foreground mb-2">{field.label}</p>
           <p className="text-sm font-medium text-foreground break-all font-display">
-            {hasValue ? field.value : isAbsent ? "Nu există" : isAnnexOnly ? "Pe anexă" : isReverseOnly ? "Pe verso" : "—"}
+            {hasValue ? field.value : isAbsent ? "Nu există" : isBlankOnDocument ? "Necompletat" : isAnnexOnly ? "Pe anexă" : isReverseOnly ? "Pe verso" : "—"}
           </p>
             {isReverseOnly && <p className="mt-2 text-xs text-muted-foreground">{field.metadata?.reason ?? (isAnnexOnly ? "Data următoarei inspecții necesită anexa talonului." : "Data expirării nu poate fi preluată din scanarea doar a feței.")}</p>}
           {isRequiredMissing && <p className="mt-2 text-xs text-destructive">Dată obligatorie nerecunoscută; necesită verificare.</p>}
           {field.metadata?.status === "review" && field.metadata?.reason && <p className="mt-2 text-xs text-destructive">{field.metadata.reason}</p>}
           {field.metadata?.comparison && <p className="mt-2 text-xs text-muted-foreground">{field.metadata.comparison === "matched-all-pages" ? `Număr identic pe toate cele ${field.metadata.pages?.length ?? 0} pagini.` : field.metadata.comparison === "conflict" ? "Numere diferite între pagini; verificare necesară." : "Comparație incompletă; sunt necesare toate paginile."}</p>}
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-            <span>Metodă: <span className="font-medium text-foreground">{isAbsent ? "Regulă locală" : hasValue ? field.metadata?.method ?? "—" : "—"}</span></span>
+            <span>Metodă: <span className="font-medium text-foreground">{isAbsent || isBlankOnDocument ? "Regulă locală" : hasValue ? field.metadata?.method ?? "—" : "—"}</span></span>
             <span title={isAbsent ? "Încredere în decizia de absență; nu este un scor de recunoaștere OCR" : field.metadata?.confidence_basis === "inherited-cnp" ? "Scor preluat din recunoașterea CNP-ului" : field.metadata?.confidence_basis === "mrz-min" ? "Cel mai mic scor OCR al liniilor MRZ" : undefined}>
               Încredere: <span className="font-medium text-foreground">{(hasValue || isAbsent) && typeof field.metadata?.confidence === "number"
                 ? `${(field.metadata.confidence * 100).toLocaleString("ro-RO", { maximumFractionDigits: 1 })}%`
