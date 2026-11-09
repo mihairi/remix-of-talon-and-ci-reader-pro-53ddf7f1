@@ -36,19 +36,26 @@ const FIELD_MAP: Record<string, { code: string; label: string }> = {
   R: { code: "R", label: "Culoarea vehiculului" },
   S_1: { code: "S.1", label: "Număr locuri pe scaune" },
   S_2: { code: "S.2", label: "Număr locuri în picioare" },
-  X: { code: "X", label: "Seria cărții de identitate a vehiculului (CIV)" },
-  Y: { code: "Y", label: "Seria CIV (varianta Y)" },
+  CIV: { code: "X/Y", label: "Seria cărții de identitate a vehiculului (CIV)" },
   NR_CERTIFICAT: { code: "Nr. certificat", label: "Numărul certificatului de înmatriculare" },
   DATA_URMATOAREI_ITP: { code: "ITP", label: "Data următoarei inspecții tehnice" },
 };
 
+/** The CIV series is printed at X or Y depending on the talon version; show whichever was read. */
+function civKey(apiFields: Record<string, string>): "X" | "Y" {
+  return !apiFields.X?.trim() && apiFields.Y?.trim() ? "Y" : "X";
+}
+
 export function mapApiResponse(apiFields: Record<string, string>, metadata: FieldMetadataMap = {}): ParsedDocument {
-  const fields: DocumentField[] = Object.entries(FIELD_MAP).map(([key, meta]) => ({
-    code: meta.code,
-    label: meta.label,
-    value: apiFields[key]?.trim() || "",
-    metadata: metadata[key],
-  }));
+  const fields: DocumentField[] = Object.entries(FIELD_MAP).map(([key, meta]) => {
+    const source = key === "CIV" ? civKey(apiFields) : key;
+    return {
+      code: meta.code,
+      label: meta.label,
+      value: apiFields[source]?.trim() || "",
+      metadata: metadata[source],
+    };
+  });
 
   return { fields };
 }
