@@ -1,5 +1,6 @@
 # Architecture rules
 - Reconcile talon page evidence in the standalone Python service and expose comparison/review metadata separately from values; the frontend only maps and displays the corrected schema, because multipage OCR and annex interpretation need server-side processing.
+- Validate P.3 fuel/energy expressions in the Python service before accepting OCR neighbors or model answers, because the adjacent R colour must not become fuel.
 - Bound unfolded talon annex context using printed annex/inspection headings, retaining the full annex for handwriting review and original coordinates in evidence; canonicalize valid plate separators without inventing identifier characters.
 - Accept full or standalone classic CI MRZ data rows with applicable field check digits; normalize nationality O/0 only in its slot, derive birth date only from validated CNP, retain and flag conflicting valid printed CNPs, preserve MRZ provenance and never recover redacted fields.
 - Parse names from TD2 row one and TD1 row three only in complete MRZ context; validate alphabet/separators and reject labels, compare regardless of printed confidence, return MRZ names on disagreement while retaining earlier values/scores and review, because MRZ names have no checksum and composite checks do not cover them.
